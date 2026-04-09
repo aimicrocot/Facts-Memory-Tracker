@@ -1,4 +1,3 @@
-// Импорты (только проверенные и 100% рабочие!)
 import { extension_settings, getContext } from "../../../extensions.js";
 import { saveSettingsDebounced } from "../../../../script.js";
 
@@ -21,54 +20,50 @@ function onAutoScanChange(event) {
     const value = Boolean($(event.target).prop("checked"));
     extension_settings[extensionName].autoScan = value;
     saveSettingsDebounced();
-    console.log(`[${extensionName}] Auto-scan toggled:`, value);
 }
 
-// ФУНКЦИЯ СКАНЕР
+// ОСНОВНАЯ ФУНКЦИЯ ГЕНЕРАЦИИ
 async function onManualScanClick() {
     const context = getContext();
     const chat = context.chat;
     
-    if (!chat || chat.length <= 4) {
-        toastr.info("Нужно больше 4 сообщений для анализа.");
+    if (!chat || chat.length === 0) {
+        toastr.info("Чат пуст. Напишите что-нибудь.");
         return;
     }
 
-    toastr.info("Пытаюсь сгенерировать факт...", "Facts Memory Tracker");
+    toastr.info("Связываюсь с ИИ...", "Facts Memory Tracker");
     
-    const targetIndex = chat.length - 1; // Берем самое последнее сообщение для теста
-    const messageToAnalyze = chat[targetIndex].mes;
-    
-    const prompt = `Проанализируй текст и выдели 1 факт о персонаже: "${messageToAnalyze}". Ответь коротко.`;
+    const lastMessage = chat[chat.length - 1].mes;
+    // Делаем промпт более явным для модели
+    const prompt = `### Instruction:\nAnalyze the following text and extract one short factual statement about the character. Respond ONLY with the fact.\n\n### Text:\n"${lastMessage}"\n\n### Fact:`;
 
     try {
-        console.log(`[${extensionName}] Пробую альтернативный метод генерации...`);
+        console.log(`[${extensionName}] Отправка запроса...`);
         
-        // Попытка использовать глобальную функцию SillyTavern
-        // Это самый современный и безопасный способ для расширений
-        const generatedText = await window.SillyTavern.getContext().generateRaw(prompt);
+        // Используем объект запроса с базовыми параметрами для стабильности
+        const response = await window.SillyTavern.getContext().generateRaw({
+            prompt: prompt,
+            max_context_length: 2048,
+            max_length: 64,
+            stop: ["\n", "###"]
+        });
         
-        if (generatedText) {
-            console.log(`[${extensionName}] ИИ ответил:`, generatedText);
-            toastr.success("Факт получен! См. консоль.", "Facts Memory Tracker");
+        if (response) {
+            console.log(`[${extensionName}] ИИ ответил:`, response);
+            
+            // Выводим текст в наш HTML-блок
+            $("#fmt_last_fact_display").text(response.trim());
+            
+            toastr.success("Факт успешно извлечен!");
         } else {
-            throw new Error("ИИ вернул пустой ответ.");
+            throw new Error("Пустой ответ от ИИ");
         }
         
     } catch (error) {
-        console.error(`[${extensionName}] Ошибка метода SillyTavern:`, error);
-        
-        // Если метод выше не сработал, пробуем последний "дикий" вариант
-        try {
-            console.log(`[${extensionName}] Пробую прямой вызов API...`);
-            const { generateRaw } = await import("../../../../script.js");
-            const altResult = await generateRaw(prompt);
-            console.log(`[${extensionName}] ИИ ответил (метод 2):`, altResult);
-            toastr.success("Факт получен через script.js!", "Facts Memory Tracker");
-        } catch (finalError) {
-            console.error(`[${extensionName}] Все методы генерации провалены.`);
-            toastr.error("Не удалось подключиться к ИИ. Проверь консоль.");
-        }
+        console.error(`[${extensionName}] Ошибка генерации:`, error);
+        toastr.error("ИИ не смог ответить. Проверь настройки API или консоль.");
+        $("#fmt_last_fact_display").text("Ошибка генерации. Попробуйте снова.");
     }
 }
 
@@ -78,10 +73,10 @@ jQuery(async () => {
         $("#extensions_settings2").append(settingsHtml);
        
         $("#fmt_auto_scan").on("input", onAutoScanChange);
-        $("#fmt_manual_scan").on("click", onManualScanClick); // Привязка кнопки
+        $("#fmt_manual_scan").on("click", onManualScanClick);
        
         loadSettings();
-        console.log(`[${extensionName}] ✅ Safe Stage 4 Loaded`);
+        console.log(`[${extensionName}] ✅ Stage 4 (Display) Loaded`);
     } catch (error) {
         console.error(`[${extensionName}] ❌ Load failed:`, error);
     }
