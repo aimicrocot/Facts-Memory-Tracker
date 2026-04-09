@@ -1,8 +1,6 @@
-// Импорты
+// Импорты (только проверенные и 100% рабочие!)
 import { extension_settings, getContext } from "../../../extensions.js";
 import { saveSettingsDebounced } from "../../../../script.js";
-// NEW: Импорт функции для тихого запроса к ИИ
-import { generateQuiet } from "../../../../../scripts/utils.js";
 
 const extensionName = "facts-memory-tracker";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
@@ -23,9 +21,10 @@ function onAutoScanChange(event) {
     const value = Boolean($(event.target).prop("checked"));
     extension_settings[extensionName].autoScan = value;
     saveSettingsDebounced();
+    console.log(`[${extensionName}] Auto-scan toggled:`, value);
 }
 
-// ФУНКЦИЯ ГЕНЕРАЦИИ ФАКТА
+// ФУНКЦИЯ СКАНЕР
 async function onManualScanClick() {
     const context = getContext();
     const chat = context.chat;
@@ -35,30 +34,33 @@ async function onManualScanClick() {
         return;
     }
 
-    toastr.info("Анализирую сообщение...", "Facts Memory Tracker");
+    toastr.info("Пытаюсь сгенерировать факт...", "Facts Memory Tracker");
     
-    // Берем 5-е сообщение с конца (чтобы не трогать последние 4)
     const targetIndex = chat.length - 5;
     const messageToAnalyze = chat[targetIndex].mes;
     
-    // Промпт для ИИ
-    const prompt = `Проанализируй следующее сообщение и выдели из него ОДИН важный факт о персонаже или событии. 
-Ответь строго ОДНИМ коротким предложением.
-Сообщение: "${messageToAnalyze}"
-Факт:`;
+    const prompt = `Проанализируй следующее сообщение и выдели из него ОДИН важный факт о персонаже или событии. Ответь строго ОДНИМ коротким предложением. Сообщение: "${messageToAnalyze}" Факт:`;
 
     try {
         console.log(`[${extensionName}] Отправка промпта к ИИ...`);
         
-        // Отправляем запрос
-        const result = await generateQuiet(prompt);
+        let generatedText = "";
         
-        console.log(`[${extensionName}] ИИ выделил факт:`, result);
+        // БЕЗОПАСНЫЙ ИМПОРТ: ищем стандартную функцию генерации
+        const networkModule = await import("../../../../network.js").catch(() => null);
+        
+        if (networkModule && typeof networkModule.generateRaw === "function") {
+            generatedText = await networkModule.generateRaw(prompt);
+        } else {
+            throw new Error("Не удалось найти внутреннюю функцию generateRaw в SillyTavern.");
+        }
+        
+        console.log(`[${extensionName}] ИИ выделил факт:`, generatedText);
         toastr.success("Факт успешно создан! Проверьте консоль (F12).", "Facts Memory Tracker");
         
     } catch (error) {
         console.error(`[${extensionName}] Ошибка генерации:`, error);
-        toastr.error("ИИ не смог ответить. Проверьте подключение к API.");
+        toastr.error("ИИ не смог ответить. Смотри консоль (F12).");
     }
 }
 
@@ -66,10 +68,12 @@ jQuery(async () => {
     try {
         const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
         $("#extensions_settings2").append(settingsHtml);
+       
         $("#fmt_auto_scan").on("input", onAutoScanChange);
-        $("#fmt_manual_scan").on("click", onManualScanClick);
+        $("#fmt_manual_scan").on("click", onManualScanClick); // Привязка кнопки
+       
         loadSettings();
-        console.log(`[${extensionName}] ✅ Stage 4 Loaded`);
+        console.log(`[${extensionName}] ✅ Safe Stage 4 Loaded`);
     } catch (error) {
         console.error(`[${extensionName}] ❌ Load failed:`, error);
     }
