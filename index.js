@@ -35,25 +35,21 @@ async function onManualScanClick() {
     toastr.info("Связываюсь с ИИ...", "Facts Memory Tracker");
     
     const lastMessage = chat[chat.length - 1].mes;
-    // Используем простой промпт на русском, чтобы не путать модель форматами
-    const promptText = `Проанализируй текст и выдели 1 короткий факт о персонаже: "${lastMessage}". Ответь ТОЛЬКО самим фактом, без лишних слов.`;
+    // Четкий промпт без лишнего мусора
+    const promptText = `Analyze the following text and extract one short factual statement about the character. Respond ONLY with the fact: "${lastMessage}"`;
 
     try {
         console.log(`[${extensionName}] Отправка запроса...`);
         
-        // Передаем только текст запроса. 
-        // Дублируем ключи text и prompt для совместимости с разными версиями ST
+        // Упрощенный вызов без параметров, вызывающих ошибку 400
         const response = await window.SillyTavern.getContext().generateRaw({
-            text: promptText,
-            prompt: promptText
+            prompt: promptText,
+            text: promptText 
         });
         
         if (response) {
             console.log(`[${extensionName}] ИИ ответил:`, response);
-            
-            // Выводим текст в наш HTML-блок
             $("#fmt_last_fact_display").text(response.trim());
-            
             toastr.success("Факт успешно извлечен!");
         } else {
             throw new Error("Пустой ответ от ИИ");
@@ -61,8 +57,8 @@ async function onManualScanClick() {
         
     } catch (error) {
         console.error(`[${extensionName}] Ошибка генерации:`, error);
-        toastr.error("ИИ не смог ответить. Проверь консоль.");
-        $("#fmt_last_fact_display").text("Ошибка генерации. Смотри консоль (F12).");
+        toastr.error("ИИ не смог ответить. Проверь консоль (F12).");
+        $("#fmt_last_fact_display").text("Ошибка генерации. Попробуйте снова.");
     }
 }
 
