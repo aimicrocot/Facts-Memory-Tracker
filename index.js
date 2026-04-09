@@ -35,13 +35,12 @@ async function onManualScanClick() {
     toastr.info("Связываюсь с ИИ...", "Facts Memory Tracker");
     
     const lastMessage = chat[chat.length - 1].mes;
-    // Четкий промпт без лишнего мусора
     const promptText = `Analyze the following text and extract one short factual statement about the character. Respond ONLY with the fact: "${lastMessage}"`;
 
     try {
-        console.log(`[${extensionName}] Отправка запроса...`);
+        console.log(`[${extensionName}] Отправка запроса (Object format)...`);
         
-        // Упрощенный вызов без параметров, вызывающих ошибку 400
+        // Передаем строго объект, как того требует консоль
         const response = await window.SillyTavern.getContext().generateRaw({
             prompt: promptText,
             text: promptText 
@@ -49,6 +48,7 @@ async function onManualScanClick() {
         
         if (response) {
             console.log(`[${extensionName}] ИИ ответил:`, response);
+            // Выводим текст в наш блок в интерфейсе
             $("#fmt_last_fact_display").text(response.trim());
             toastr.success("Факт успешно извлечен!");
         } else {
@@ -57,8 +57,7 @@ async function onManualScanClick() {
         
     } catch (error) {
         console.error(`[${extensionName}] Ошибка генерации:`, error);
-        toastr.error("ИИ не смог ответить. Проверь консоль (F12).");
-        $("#fmt_last_fact_display").text("Ошибка генерации. Попробуйте снова.");
+        toastr.error("ИИ не смог ответить. Проверь консоль.");
     }
 }
 
