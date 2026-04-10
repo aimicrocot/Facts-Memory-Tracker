@@ -1,4 +1,4 @@
-# Minimalist Facts Memory Tracker
+# Mini Facts Memory Tracker
 
 ## Eng ReadMe
 
@@ -6,7 +6,7 @@
 
 ### About
   
-An extension that allows hiding messages from the context and summarizing their essence, sending only the most important information to the chat context to save tokens (work in progress). Designed for extreme token/cost savings during RP, extending API key lifespan, and preserving context coherence.
+A minimalist extension that allows hiding messages from the context and summarizing their essence, sending only the most important information to the chat context to save tokens (work in progress). Designed for extreme token/cost savings during RP, extending API key lifespan, and preserving context coherence.
 
 ### Installation
 
