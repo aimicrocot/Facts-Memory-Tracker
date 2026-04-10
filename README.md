@@ -1,9 +1,9 @@
-# Facts-Memory-Tracker
+# Mini Facts Memory Tracker
 
 ## Eng ReadMe
 An extension that allows hiding messages from the context and summarizing their essence, sending only the most important information to the chat context to save tokens (work in progress).
 
-Installation
+## Installation
 
 1. Open SillyTavern
 
