@@ -21,8 +21,8 @@ Look for "Facts Memory Tracker" in the list of extensions in SillyTavern.
 
 Extensions with similar functionality that I’ve seen:
 
-https://github.com/KiskaSora/SillyTavern-Horae.git
+- https://github.com/KiskaSora/SillyTavern-Horae.git
 
-https://github.com/smoksshit-cmd/FactsMemoryTracker
+- https://github.com/smoksshit-cmd/FactsMemoryTracker
 
-https://github.com/smoksshit-cmd/SecretsRevelationsTracker
+- https://github.com/smoksshit-cmd/SecretsRevelationsTracker
