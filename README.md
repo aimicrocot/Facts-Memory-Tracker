@@ -8,6 +8,12 @@
   
 A minimalist extension that allows hiding messages from the context and summarizing their essence, sending only the most important information to the chat context to save tokens (work in progress). Designed for extreme token/cost savings during RP, extending API key lifespan, and preserving context coherence.
 
+### Features
+
+- You control how many of the most recent messages remain visible. At minimum, this includes the latest message from the bot and the user
+- All other messages are automatically hidden, and their key points are also extracted automatically—no manual selection required
+- The process runs in parallel, meaning it does not affect the model’s intelligence; there are no additional injections or token overhead—only a concise summary of past messages
+
 ### Installation
 
 1. Open SillyTavern
