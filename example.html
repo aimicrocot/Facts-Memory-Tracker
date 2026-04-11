@@ -1,28 +1,33 @@
-<div class="facts-memory-tracker-settings">
-    <div class="inline-drawer">
-        <div class="inline-drawer-toggle inline-drawer-header">
-            <b>Facts Memory Tracker</b>
-            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
-        </div>
-        <div class="inline-drawer-content">
-            <div class="flex-container">
-                <input id="fmt_auto_scan" type="checkbox" />
-                <label for="fmt_auto_scan">Включить авто-сканирование</label>
-            </div>
-            
-            <hr />
-            
-            <div style="display: flex; gap: 10px;">
-                <input id="fmt_manual_scan" class="menu_button" type="submit" value="Сканировать сообщение" />
-                <input id="fmt_clear_facts" class="menu_button" type="submit" value="Очистить список" style="background-color: #5c1d1d !important;" />
-            </div>
-
-            <div style="margin-top:15px;">
-                <b>Сохраненные факты:</b>
-                <div id="fmt_facts_list" style="margin-top:10px; max-height: 200px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); padding: 5px; border-radius: 5px;">
-                    <small style="opacity:0.5;">Список пуст...</small>
-                </div>
-            </div>
+<div class="fmt_settings">
+    <div class="inline-admonition inline-admonition-info">
+        <div class="inline-admonition-title">Facts Memory Tracker</div>
+        <div class="inline-admonition-content">
+            Автоматическое извлечение фактов из истории чата.
         </div>
     </div>
+
+    <div class="flex-container">
+        <label class="checkbox_label">
+            <input type="checkbox" id="fmt_auto_scan">
+            Включить авто-сканирование (каждые 4 сообщ.)
+        </label>
+    </div>
+
+    <div class="flex-container" style="margin-top: 10px; align-items: center; gap: 10px;">
+        <span>Пропускать последних сообщений:</span>
+        <input type="number" id="fmt_skip_count" class="text_sw" style="width: 60px;" min="2" value="4">
+    </div>
+    <small style="opacity: 0.6; display: block; margin-bottom: 10px;">
+        (Минимум 2: последнее сообщение юзера и бота)
+    </small>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <button id="fmt_manual_scan" class="menu_button">Сканировать сейчас</button>
+        <button id="fmt_clear_facts" class="menu_button footer_button">Очистить список</button>
+    </div>
+
+    <hr>
+    <h5>Сохраненные факты:</h5>
+    <div id="fmt_facts_list" style="max-height: 300px; overflow-y: auto;">
+        </div>
 </div>
