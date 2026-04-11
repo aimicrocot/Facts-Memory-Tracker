@@ -1,33 +1,46 @@
-<div class="fmt_settings">
-    <div class="inline-admonition inline-admonition-info">
-        <div class="inline-admonition-title">Facts Memory Tracker</div>
+<div class="fmt_container" style="margin-bottom: 20px;">
+    <div class="inline-admonition inline-admonition-cyan">
+        <div class="inline-admonition-title">
+            <i class="fa-solid fa-brain"></i> 
+            <span>Facts Memory Tracker</span>
+        </div>
+        
         <div class="inline-admonition-content">
-            Автоматическое извлечение фактов из истории чата.
+            <p style="font-size: 0.9em; opacity: 0.8; margin-bottom: 15px;">
+                Автоматическое извлечение и сохранение фактов о персонаже.
+            </p>
+
+            <div class="flex-container" style="margin-bottom: 10px;">
+                <label class="checkbox_label">
+                    <input type="checkbox" id="fmt_auto_scan">
+                    Включить авто-сканирование (каждые 4 сообщ.)
+                </label>
+            </div>
+
+            <div class="flex-container" style="align-items: center; gap: 10px; margin-bottom: 5px;">
+                <span>Пропускать последних сообщений:</span>
+                <input type="number" id="fmt_skip_count" class="text_sw" style="width: 60px;" min="2" value="4">
+            </div>
+            <small style="display: block; opacity: 0.6; margin-bottom: 15px; font-style: italic;">
+                (Минимум 2: последнее сообщение юзера и бота)
+            </small>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button id="fmt_manual_scan" class="menu_button" style="flex: 1;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Сканировать сейчас
+                </button>
+                <button id="fmt_clear_facts" class="menu_button footer_button" style="flex: 1;">
+                    <i class="fa-solid fa-trash-can"></i> Очистить список
+                </button>
+            </div>
+
+            <hr style="opacity: 0.2; margin: 15px 0;">
+
+            <h5 style="margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
+                <i class="fa-solid fa-list-ul"></i> Сохраненные факты:
+            </h5>
+            <div id="fmt_facts_list" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                </div>
         </div>
     </div>
-
-    <div class="flex-container">
-        <label class="checkbox_label">
-            <input type="checkbox" id="fmt_auto_scan">
-            Включить авто-сканирование (каждые 4 сообщ.)
-        </label>
-    </div>
-
-    <div class="flex-container" style="margin-top: 10px; align-items: center; gap: 10px;">
-        <span>Пропускать последних сообщений:</span>
-        <input type="number" id="fmt_skip_count" class="text_sw" style="width: 60px;" min="2" value="4">
-    </div>
-    <small style="opacity: 0.6; display: block; margin-bottom: 10px;">
-        (Минимум 2: последнее сообщение юзера и бота)
-    </small>
-
-    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <button id="fmt_manual_scan" class="menu_button">Сканировать сейчас</button>
-        <button id="fmt_clear_facts" class="menu_button footer_button">Очистить список</button>
-    </div>
-
-    <hr>
-    <h5>Сохраненные факты:</h5>
-    <div id="fmt_facts_list" style="max-height: 300px; overflow-y: auto;">
-        </div>
 </div>
