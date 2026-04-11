@@ -6,10 +6,11 @@ const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 
 const defaultSettings = {
     autoScan: false,
-    facts: [] 
+    facts: [],
+    skipCount: 4 // Значение по умолчанию
 };
 
-// --- ФУНКЦИИ УПРАВЛЕНИЯ (объявлены в начале для доступности) ---
+// --- 1. УПРАВЛЕНИЕ ДАННЫМИ ---
 
 function deleteFact(index) {
     extension_settings[extensionName].facts.splice(index, 1);
@@ -29,6 +30,8 @@ function editFact(index) {
         toastr.success("Факт обновлен");
     }
 }
+
+// --- 2. ВИЗУАЛИЗАЦИЯ ---
 
 function renderFacts() {
     const listContainer = $("#fmt_facts_list");
@@ -53,7 +56,6 @@ function renderFacts() {
     html += '</div>';
     listContainer.html(html);
 
-    // Привязываем события заново при каждой отрисовке
     $(".fmt-delete-btn").off("click").on("click", function() {
         deleteFact($(this).data("index"));
     });
@@ -63,15 +65,24 @@ function renderFacts() {
     });
 }
 
-// --- ЛОГИКА СКАНИРОВАНИЯ ---
+// --- 3. СКАНИРОВАНИЕ И АНАЛИЗ ---
 
 async function runAutoScan() {
     const context = getContext();
     const chat = context.chat;
-    if (!chat || chat.length === 0) return;
+    const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
 
-    const lastMessage = chat[chat.length - 1].mes;
-    const promptText = `Analyze the following text and extract one short factual statement about the character. Respond ONLY with the fact: "${lastMessage}"`;
+    // 3.1. Проверка достаточности сообщений в чате
+    if (!chat || chat.length <= skipCount) {
+        console.log(`[${extensionName}] Недостаточно сообщений для сканирования с отступом ${skipCount}`);
+        return;
+    }
+
+    // 3.2. Выбор сообщения с учетом отступа
+    const targetIndex = chat.length - 1 - skipCount;
+    const targetMessage = chat[targetIndex].mes;
+    
+    const promptText = `Analyze the following text and extract one short factual statement about the character. Respond ONLY with the fact: "${targetMessage}"`;
 
     try {
         const response = await window.SillyTavern.getContext().generateRaw({
@@ -81,7 +92,6 @@ async function runAutoScan() {
         
         if (response) {
             const newFact = response.trim();
-            // Минимальная проверка на мусор
             if (newFact.length > 5 && !newFact.includes("does not contain")) {
                 extension_settings[extensionName].facts.push(newFact);
                 saveSettingsDebounced();
@@ -89,26 +99,36 @@ async function runAutoScan() {
             }
         }
     } catch (error) {
-        console.error(`[${extensionName}] Ошибка:`, error);
+        console.error(`[${extensionName}] Ошибка генерации:`, error);
     }
 }
 
 async function handleChatEvent() {
     if (!extension_settings[extensionName].autoScan) return;
     const chat = getContext().chat;
+    // Срабатывает каждые 4 сообщения
     if (chat && chat.length > 0 && chat.length % 4 === 0) {
         await runAutoScan();
     }
 }
 
-// --- ИНИЦИАЛИЗАЦИЯ ---
+// --- 4. ИНИЦИАЛИЗАЦИЯ И НАСТРОЙКИ ---
+
+function updateMaxSkip() {
+    const chatLength = getContext().chat?.length || 0;
+    $("#fmt_skip_count").attr("max", chatLength);
+}
 
 function loadSettings() {
     extension_settings[extensionName] = extension_settings[extensionName] || {};
     if (Object.keys(extension_settings[extensionName]).length === 0) {
         Object.assign(extension_settings[extensionName], defaultSettings);
     }
+    
     $("#fmt_auto_scan").prop("checked", extension_settings[extensionName].autoScan);
+    $("#fmt_skip_count").val(extension_settings[extensionName].skipCount);
+    
+    updateMaxSkip();
     renderFacts();
 }
 
@@ -119,6 +139,19 @@ jQuery(async () => {
        
         $("#fmt_auto_scan").on("input", (e) => {
             extension_settings[extensionName].autoScan = Boolean($(e.target).prop("checked"));
+            saveSettingsDebounced();
+        });
+
+        // 4.1. Обработка изменения количества пропускаемых сообщений
+        $("#fmt_skip_count").on("input", (e) => {
+            let val = parseInt($(e.target).val());
+            const max = parseInt($(e.target).attr("max"));
+            
+            if (val < 2) val = 2;
+            if (val > max) val = max;
+            
+            $(e.target).val(val);
+            extension_settings[extensionName].skipCount = val;
             saveSettingsDebounced();
         });
 
@@ -138,8 +171,10 @@ jQuery(async () => {
        
         loadSettings();
         eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, handleChatEvent);
+        // Обновляем max при каждом новом сообщении
+        eventSource.on(event_types.MESSAGE_RECEIVED, updateMaxSkip);
         
-        console.log(`[${extensionName}] ✅ Full Control Loaded`);
+        console.log(`[${extensionName}] ✅ Full Control with Skip Logic Loaded`);
     } catch (error) {
         console.error(`[${extensionName}] ❌ Load failed:`, error);
     }
