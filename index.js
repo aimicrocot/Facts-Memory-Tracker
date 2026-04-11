@@ -22,7 +22,7 @@ function deleteFact(index) {
 function editFact(index) {
     const currentFact = extension_settings[extensionName].facts[index];
     const newFact = prompt("Редактирование факта:", currentFact);
-    
+
     if (newFact !== null && newFact.trim() !== "") {
         extension_settings[extensionName].facts[index] = newFact.trim();
         saveSettingsDebounced();
@@ -64,6 +64,7 @@ function renderFacts() {
 }
 
 // --- ЛОГИКА СКАНИРОВАНИЯ ---
+
 async function runAutoScan() {
     const context = getContext();
     const chat = context.chat;
@@ -81,21 +82,19 @@ async function runAutoScan() {
     for (let i = 0; i < endIndex; i++) {
         if (chat[i] && chat[i].mes) {
             const speaker = chat[i].is_user ? "User" : (chat[i].name || "Character");
-            targetText += `${speaker}: ${chat[i].mes}
-`;
+            targetText += `${speaker}: ${chat[i].mes}\n`;
         }
     }
 
     if (targetText.trim() === "") return;
 
-    // 1.3. Формирование строгого промпта
-    const promptText = `TASK: Extract facts ONLY from the "NEW CHAT DATA" provided below.
+    // 1.3. Формирование строгого промпта (объединение лучших практик)
+    const promptText = `TASK: Extract facts ONLY from the "NEW CHAT DATA" provided below. 
 STRICT RULES:
 1. Ignore any previous knowledge about the character.
 2. Use ONLY information explicitly mentioned in the text below.
 3. Respond with complete, finished sentences. Do not cut off the text.
-4. Each fact must be on a separate line starting with "* " (asterisk and space).
-5. If no new facts are found, respond with "No new facts".
+4. If no new facts are found, respond with "No new facts".
 
 NEW CHAT DATA:
 ${targetText}`;
@@ -103,44 +102,25 @@ ${targetText}`;
     try {
         const response = await window.SillyTavern.getContext().generateRaw({
             prompt: promptText,
-            text: promptText
+            text: promptText 
         });
 
         if (response) {
-            const responseText = response.trim();
-
+            const newFact = response.trim();
             // 1.4. Фильтрация мусорных ответов
-            if (responseText.length > 5 &&
-                !responseText.toLowerCase().includes("no new facts") &&
-                !responseText.toLowerCase().includes("no information")) {
+            if (newFact.length > 5 && 
+                !newFact.toLowerCase().includes("no new facts") && 
+                !newFact.toLowerCase().includes("no information")) {
 
-                // Разбиваем ответ на отдельные факты
-                const facts = responseText
-                    .split('\n')
-                    .map(line => line.trim())
-                    .filter(line => line.length > 0)
-                    .map(line => {
-                        // Убираем маркеры списка (* - • и т.д.)
-                        return line.replace(/^[\*\-•]\s*/, '').trim();
-                    })
-                    .filter(fact => fact.length > 5);
-
-                // Добавляем каждый факт отдельно
-                facts.forEach(fact => {
-                    extension_settings[extensionName].facts.push(fact);
-                });
-
-                if (facts.length > 0) {
-                    saveSettingsDebounced();
-                    renderFacts();
-                }
+                extension_settings[extensionName].facts.push(newFact);
+                saveSettingsDebounced();
+                renderFacts();
             }
         }
     } catch (error) {
         console.error(`[${extensionName}] Ошибка сканирования:`, error);
     }
 }
-
 
 async function handleChatEvent() {
     if (!extension_settings[extensionName].autoScan) return;
@@ -163,11 +143,11 @@ function loadSettings() {
     if (Object.keys(extension_settings[extensionName]).length === 0) {
         Object.assign(extension_settings[extensionName], defaultSettings);
     }
-    
+
     // Загружаем сохраненные значения в интерфейс
     $("#fmt_auto_scan").prop("checked", extension_settings[extensionName].autoScan);
     $("#fmt_skip_count").val(extension_settings[extensionName].skipCount || 2);
-    
+
     updateMaxSkip();
     renderFacts();
 }
@@ -176,7 +156,7 @@ jQuery(async () => {
     try {
         const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
         $("#extensions_settings2").append(settingsHtml);
-       
+
         $("#fmt_auto_scan").on("input", (e) => {
             extension_settings[extensionName].autoScan = Boolean($(e.target).prop("checked"));
             saveSettingsDebounced();
@@ -186,11 +166,11 @@ jQuery(async () => {
         $("#fmt_skip_count").on("input", (e) => {
             let val = parseInt($(e.target).val());
             const max = parseInt($(e.target).attr("max")) || 2;
-            
+
             // Жесткие лимиты: не меньше 2, не больше размера чата
             if (val < 2) val = 2;
             if (val > max) val = max;
-            
+
             $(e.target).val(val);
             extension_settings[extensionName].skipCount = val;
             saveSettingsDebounced();
@@ -209,13 +189,13 @@ jQuery(async () => {
                 renderFacts();
             }
         });
-       
+
         loadSettings();
         eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, handleChatEvent);
-        
+
         // Обновляем max лимит при каждом новом сообщении
         eventSource.on(event_types.MESSAGE_RECEIVED, updateMaxSkip);
-        
+
         console.log(`[${extensionName}] ✅ Full Control Loaded`);
     } catch (error) {
         console.error(`[${extensionName}] ❌ Load failed:`, error);
