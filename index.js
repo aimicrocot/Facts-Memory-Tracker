@@ -6,11 +6,10 @@ const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 
 const defaultSettings = {
     autoScan: false,
-    skipCount: 2, // Добавлено: значение пропуска по умолчанию
     facts: [] 
 };
 
-// --- ФУНКЦИИ УПРАВЛЕНИЯ ---
+// --- ФУНКЦИИ УПРАВЛЕНИЯ (объявлены в начале для доступности) ---
 
 function deleteFact(index) {
     extension_settings[extensionName].facts.splice(index, 1);
@@ -22,7 +21,7 @@ function deleteFact(index) {
 function editFact(index) {
     const currentFact = extension_settings[extensionName].facts[index];
     const newFact = prompt("Редактирование факта:", currentFact);
-
+    
     if (newFact !== null && newFact.trim() !== "") {
         extension_settings[extensionName].facts[index] = newFact.trim();
         saveSettingsDebounced();
@@ -54,6 +53,7 @@ function renderFacts() {
     html += '</div>';
     listContainer.html(html);
 
+    // Привязываем события заново при каждой отрисовке
     $(".fmt-delete-btn").off("click").on("click", function() {
         deleteFact($(this).data("index"));
     });
@@ -68,57 +68,28 @@ function renderFacts() {
 async function runAutoScan() {
     const context = getContext();
     const chat = context.chat;
-    const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
+    if (!chat || chat.length === 0) return;
 
-    // 1.1. Проверка на наличие сообщений для обработки
-    if (!chat || chat.length <= skipCount) {
-        return;
-    }
-
-    // 1.2. Сбор всех сообщений от начала чата до границы отступа
-    const endIndex = chat.length - skipCount;
-    let targetText = "";
-
-    for (let i = 0; i < endIndex; i++) {
-        if (chat[i] && chat[i].mes) {
-            const speaker = chat[i].is_user ? "User" : (chat[i].name || "Character");
-            targetText += `${speaker}: ${chat[i].mes}\n`;
-        }
-    }
-
-    if (targetText.trim() === "") return;
-
-    // 1.3. Формирование строгого промпта (объединение лучших практик)
-    const promptText = `TASK: Extract facts ONLY from the "NEW CHAT DATA" provided below. 
-STRICT RULES:
-1. Ignore any previous knowledge about the character.
-2. Use ONLY information explicitly mentioned in the text below.
-3. Respond with complete, finished sentences. Do not cut off the text.
-4. If no new facts are found, respond with "No new facts".
-
-NEW CHAT DATA:
-${targetText}`;
+    const lastMessage = chat[chat.length - 1].mes;
+    const promptText = `Analyze the following text and extract one short factual statement about the character. Respond ONLY with the fact: "${lastMessage}"`;
 
     try {
         const response = await window.SillyTavern.getContext().generateRaw({
             prompt: promptText,
             text: promptText 
         });
-
+        
         if (response) {
             const newFact = response.trim();
-            // 1.4. Фильтрация мусорных ответов
-            if (newFact.length > 5 && 
-                !newFact.toLowerCase().includes("no new facts") && 
-                !newFact.toLowerCase().includes("no information")) {
-
+            // Минимальная проверка на мусор
+            if (newFact.length > 5 && !newFact.includes("does not contain")) {
                 extension_settings[extensionName].facts.push(newFact);
                 saveSettingsDebounced();
                 renderFacts();
             }
         }
     } catch (error) {
-        console.error(`[${extensionName}] Ошибка сканирования:`, error);
+        console.error(`[${extensionName}] Ошибка:`, error);
     }
 }
 
@@ -130,25 +101,14 @@ async function handleChatEvent() {
     }
 }
 
-// --- ИНИЦИАЛИЗАЦИЯ И ОБРАБОТЧИКИ ---
-
-// Функция для динамического обновления максимального значения
-function updateMaxSkip() {
-    const chatLength = getContext().chat?.length || 0;
-    $("#fmt_skip_count").attr("max", chatLength);
-}
+// --- ИНИЦИАЛИЗАЦИЯ ---
 
 function loadSettings() {
     extension_settings[extensionName] = extension_settings[extensionName] || {};
     if (Object.keys(extension_settings[extensionName]).length === 0) {
         Object.assign(extension_settings[extensionName], defaultSettings);
     }
-
-    // Загружаем сохраненные значения в интерфейс
     $("#fmt_auto_scan").prop("checked", extension_settings[extensionName].autoScan);
-    $("#fmt_skip_count").val(extension_settings[extensionName].skipCount || 2);
-
-    updateMaxSkip();
     renderFacts();
 }
 
@@ -156,23 +116,9 @@ jQuery(async () => {
     try {
         const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
         $("#extensions_settings2").append(settingsHtml);
-
+       
         $("#fmt_auto_scan").on("input", (e) => {
             extension_settings[extensionName].autoScan = Boolean($(e.target).prop("checked"));
-            saveSettingsDebounced();
-        });
-
-        // Обработчик поля отступа
-        $("#fmt_skip_count").on("input", (e) => {
-            let val = parseInt($(e.target).val());
-            const max = parseInt($(e.target).attr("max")) || 2;
-
-            // Жесткие лимиты: не меньше 2, не больше размера чата
-            if (val < 2) val = 2;
-            if (val > max) val = max;
-
-            $(e.target).val(val);
-            extension_settings[extensionName].skipCount = val;
             saveSettingsDebounced();
         });
 
@@ -189,13 +135,10 @@ jQuery(async () => {
                 renderFacts();
             }
         });
-
+       
         loadSettings();
         eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, handleChatEvent);
-
-        // Обновляем max лимит при каждом новом сообщении
-        eventSource.on(event_types.MESSAGE_RECEIVED, updateMaxSkip);
-
+        
         console.log(`[${extensionName}] ✅ Full Control Loaded`);
     } catch (error) {
         console.error(`[${extensionName}] ❌ Load failed:`, error);
