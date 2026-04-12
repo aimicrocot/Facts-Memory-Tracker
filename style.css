@@ -1,1 +1,54 @@
-/* Пока пусто - стили добавим позже, если понадобятся */
+.fmt-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.fmt-fact-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.2s;
+}
+
+.fmt-fact-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.fmt-fact-text {
+    font-size: 0.9em;
+    color: #e0e0e0;
+    line-height: 1.4;
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.fmt-fact-controls {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.fmt-edit-btn {
+    cursor: pointer;
+    color: #4a9eff; /* Синий для редактирования */
+    font-size: 1.1em;
+    opacity: 0.8;
+}
+
+.fmt-delete-btn {
+    cursor: pointer;
+    color: #ff5555; /* Красный для удаления */
+    font-size: 1.1em;
+    opacity: 0.8;
+}
+
+.fmt-edit-btn:hover, .fmt-delete-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
