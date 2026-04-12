@@ -77,57 +77,58 @@ async function runAutoScan() {
     const endIndex = chat.length - skipCount;
     const messagesToScan = [];
 
-    // 2.1.1 Собираем список сообщений для анализа
+    // Собираем сообщения
     for (let i = 0; i < endIndex; i++) {
         if (chat[i] && chat[i].mes) {
             const speaker = chat[i].is_user ? "User" : (chat[i].name || "Character");
-            messagesToScan.push({
-                speaker: speaker,
-                text: chat[i].mes
-            });
+            messagesToScan.push({ speaker, text: chat[i].mes });
         }
     }
 
     if (messagesToScan.length === 0) return;
 
+    toastr.info(`Начинаю сканирование ${messagesToScan.length} сообщений... По одному.`, "Facts Tracker");
+
     try {
-        // 2.1.2 Создаем массив "обещаний" (запросов)
-        const promises = messagesToScan.map(async (msg) => {
-            const promptText = `TASK: Extract important facts about the User or Character from this specific message.
+        // Запускаем строгий последовательный цикл
+        for (let i = 0; i < messagesToScan.length; i++) {
+            const msg = messagesToScan[i];
+            
+            const promptText = `TASK: Extract important facts about the User or Character from THIS SPECIFIC message.
 STRICT RULES:
 1. Use ONLY information from the message below.
 2. If multiple facts are found, combine them into one concise paragraph.
 3. If no new facts are found, respond exactly with: "No new facts".
 
-MESSAGE TO ANALYZE:
+MESSAGE:
 ${msg.speaker}: ${msg.text}`;
 
+            // await внутри цикла останавливает выполнение до получения ответа
             const response = await window.SillyTavern.getContext().generateRaw({
                 prompt: promptText,
                 text: promptText 
             });
 
-            return response ? response.trim() : "No new facts";
-        });
+            const newFact = response ? response.trim() : "No new facts";
 
-        // 2.1.3 Запускаем все запросы одновременно и ждем результат
-        const results = await Promise.all(promises);
-
-        // 2.1.4 Обрабатываем результаты (каждый результат — это один контейнер)
-        results.forEach(newFact => {
+            // Если факт найден, сразу сохраняем
             if (newFact.length > 5 && 
                 !newFact.toLowerCase().includes("no new facts") && 
                 !newFact.toLowerCase().includes("no information")) {
                 
                 extension_settings[extensionName].facts.push(newFact);
+                
+                // Опционально: можно обновлять UI прямо в процессе, чтобы видеть прогресс
+                renderFacts();
             }
-        });
+        }
 
         saveSettingsDebounced();
-        renderFacts();
+        toastr.success("Сканирование успешно завершено!", "Facts Tracker");
         
     } catch (error) {
-        console.error(`[${extensionName}] Ошибка параллельного сканирования:`, error);
+        console.error(`[${extensionName}] Ошибка сканирования:`, error);
+        toastr.error("Процесс прерван из-за ошибки API.", "Facts Tracker");
     }
 }
 
