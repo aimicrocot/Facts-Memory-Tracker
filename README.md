@@ -10,7 +10,7 @@ A minimalist extension that allows hiding messages from the context and summariz
 
 ### Features
 
-- You control how many of the most recent messages remain visible. At minimum, this includes the latest message from the bot and the user
+- You control how many of the most recent messages remain visible; at minimum, this includes the latest message from the bot and the user
 - All other messages are automatically hidden, and their key points are also extracted automatically—no manual selection required
 - The process runs in parallel, meaning it does not affect the model’s intelligence
 - There are no additional injections or token overhead—only a concise summary of past messages
@@ -51,7 +51,7 @@ Extensions with similar functionality that I’ve seen:
 
 ### Особенности
 
-- Вы контролируете число последних сообщений, которые не скрываются. Минимально это последнее сообщение бота и юзера
+- Вы контролируете число последних сообщений, которые не скрываются; минимально это последнее сообщение бота и юзера
 - Остальные сообщения скрываются автоматически, и суть из них собирается тоже автоматически, их не надо выбирать вручную
 - Процесс проходит параллельно, то есть построен так, что не влияет на интеллект модели
 - Нет никаких дополнительных инжектов или траты токенов на что-то ещё, только сканирование и краткое саммари сообщений
