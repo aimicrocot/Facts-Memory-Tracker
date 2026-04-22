@@ -32,32 +32,19 @@ function applyVisualHiding() {
     $("#fmt_summary_in_chat").remove();
     if (facts.length > 0 && cutOffIndex > 0) {
         const summaryHtml = `
-            <div id="fmt_summary_in_chat" class="fmt-chat-summary-block" style="padding-bottom: 15px;">
+            <div id="fmt_summary_in_chat" class="fmt-chat-summary-block">
                 <div class="fmt-summary-header">
                     <span><i class="fa-solid fa-brain"></i> MEMORY TRACKER SUMMARY</span>
                     <span>${facts.length} facts preserved</span>
                 </div>
-                
-                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
-                    <button id="fmt_btn_toggle_text" class="menu_button">Показать саммари</button>
-                    <button id="fmt_btn_show_history" class="menu_button">Развернуть историю</button>
-                </div>
-
-                <div id="fmt_summary_text_container" class="fmt-summary-content" style="display: none; margin-top: 15px;">
-                    ${facts.join(" ")}
-                </div>
+                <div class="fmt-summary-content">${facts.join(" ")}</div>
+                <div style="text-align: center; margin-top: 10px; font-size: 0.75em; opacity: 0.5;">(Нажми, чтобы временно развернуть историю)</div>
             </div>`;
         $("#chat").prepend(summaryHtml);
         
-        // Обработчик для первой кнопки: показываем/скрываем текст фактов
-        $("#fmt_btn_toggle_text").on("click", function() {
-            $("#fmt_summary_text_container").toggle(); 
-        });
-
-        // Обработчик для второй кнопки: разворачиваем историю чата
-        $("#fmt_btn_show_history").on("click", function() {
+        $("#fmt_summary_in_chat").on("click", function() {
             $(".fmt-hidden-message").removeClass("fmt-hidden-message");
-            $("#fmt_summary_in_chat").fadeOut();
+            $(this).fadeOut();
         });
     }
 }
