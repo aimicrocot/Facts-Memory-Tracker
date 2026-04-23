@@ -185,18 +185,30 @@ function loadSettings() {
     renderFacts();
 }
 
-// Хук подмены контекста для ИИ (невидимый для юзера)
+// Хук подмены контекста для ИИ (реальное сокращение токенов)
 eventSource.on(event_types.GENERATE_BEFORE_COMMANDS, async () => {
     const context = getContext();
     const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
     const facts = extension_settings[extensionName].facts;
+    const cutOffIndex = context.chat.length - skipCount;
 
-    if (facts.length > 0 && context.chat.length > skipCount) {
-        const cutOffIndex = context.chat.length - skipCount;
-        const factsSummary = "System Note: Key facts from previous conversation:\n" + facts.join("\n");
-        const summaryMessage = { is_user: false, is_system: true, mes: factsSummary };
-        const recentMessages = context.chat.slice(cutOffIndex);
-        context.chat = [summaryMessage, ...recentMessages];
+    // Сначала сбрасываем пропуски, чтобы изменения слайдера применялись динамически
+    context.chat.forEach(msg => {
+        if (msg.hasOwnProperty('is_skipped')) msg.is_skipped = false;
+    });
+
+    if (facts.length > 0 && cutOffIndex > 0) {
+        // 1. Помечаем старые сообщения как "пропущенные" для сборщика промпта
+        for (let i = 0; i < cutOffIndex; i++) {
+            context.chat[i].is_skipped = true;
+        }
+        
+        // 2. Внедряем факты в системный промпт расширения
+        // Это добавит их в запрос, не создавая лишних сообщений в файле чата
+        const factsSummary = "### System Note: Key facts from previous conversation:\n" + facts.join("\n");
+        context.extension_prompt = factsSummary; 
+        
+        console.log(`[${extensionName}] Context optimized: ${cutOffIndex} messages skipped.`);
     }
 });
 
