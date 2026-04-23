@@ -38,9 +38,10 @@ function applyVisualHiding() {
                     <span>${facts.length} facts preserved</span>
                 </div>
                 
-                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
-                    <button id="fmt_btn_toggle_text" class="menu_button">Показать саммари</button>
-                    <button id="fmt_btn_show_history" class="menu_button">Развернуть историю</button>
+                <div style="display: flex; gap: 20px; justify-content: center; margin-top: 10px;">
+                    <button id="fmt_btn_toggle_text" style="background: transparent; border: 1px dashed #4a9eff; color: #4a9eff; padding: 8px 16px; border-radius: 5px; cursor: pointer; white-space: nowrap;">Показать саммари</button>
+                    <button id="fmt_btn_show_history" style="background: transparent; border: 1px dashed #4a9eff; color: #4a9eff; padding: 8px 16px; border-radius: 5px; cursor: pointer; white-space: nowrap;">Развернуть историю</button>
+                </div>
                 </div>
 
                 <div id="fmt_summary_text_container" class="fmt-summary-content" style="display: none; margin-top: 15px;">
