@@ -7,6 +7,7 @@ const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const defaultSettings = {
     autoScan: false,
     skipCount: 2,
+    isHidden: false,
     facts: [] 
 };
 
@@ -21,9 +22,10 @@ function applyVisualHiding() {
     const facts = extension_settings[extensionName].facts;
     const cutOffIndex = chat.length - skipCount;
 
+    const shouldHide = extension_settings[extensionName].isHidden;
     $(".mes").each(function() {
         const mesId = parseInt($(this).attr("mesid"));
-        if (mesId >= 0 && mesId < cutOffIndex) {
+        if (shouldHide && mesId >= 0 && mesId < cutOffIndex) {
             $(this).addClass("fmt-hidden-message");
         } else {
             $(this).removeClass("fmt-hidden-message");
@@ -181,6 +183,7 @@ function loadSettings() {
     }
     $("#fmt_auto_scan").prop("checked", extension_settings[extensionName].autoScan);
     $("#fmt_skip_count").val(extension_settings[extensionName].skipCount || 2);
+    $("#fmt_toggle_hide").text(extension_settings[extensionName].isHidden ? "Вернуть" : "Скрыть");
     updateMaxSkip();
     renderFacts();
 }
@@ -210,10 +213,19 @@ jQuery(async () => {
                 renderFacts();
             }
         });
+            
+        $("#fmt_toggle_hide").on("click", () => {
+            const isHidden = !extension_settings[extensionName].isHidden;
+            extension_settings[extensionName].isHidden = isHidden;
+            saveSettingsDebounced();
+            $("#fmt_toggle_hide").text(isHidden ? "Вернуть" : "Скрыть");
+            applyVisualHiding();
+        });
        
         loadSettings();
 
         eventSource.on(event_types.GENERATE_BEFORE_COMBINE_PROMPTS, () => {
+            if (!extension_settings[extensionName].isHidden) return;
             const context = getContext();
             const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
             const cutOffIndex = context.chat.length - skipCount;
