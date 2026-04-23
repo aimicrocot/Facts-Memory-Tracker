@@ -35,7 +35,7 @@ function applyVisualHiding() {
             <div id="fmt_summary_in_chat" class="fmt-chat-summary-block" style="padding-bottom: 15px;">
                 <div class="fmt-summary-header">
                     <span><i class="fa-solid fa-brain"></i> SUMMARY TRACKER</span>
-                    <span>${facts.length} facts preserved</span>
+                    <span>${facts.length} facts</span>
                 </div>
                 
                 <div style="display: flex; gap: 20px; justify-content: center; margin-top: 10px;">
