@@ -10,6 +10,8 @@ const defaultSettings = {
     facts: [] 
 };
 
+let hiddenMessagesBuffer = [];
+
 // --- ФУНКЦИИ ВИЗУАЛИЗАЦИИ И СКРЫТИЯ ---
 
 function applyVisualHiding() {
@@ -19,19 +21,15 @@ function applyVisualHiding() {
     const facts = extension_settings[extensionName].facts;
     const cutOffIndex = chat.length - skipCount;
 
-    // 1. Скрываем сообщения: визуально в HTML и логически для AI
     $(".mes").each(function() {
         const mesId = parseInt($(this).attr("mesid"));
         if (mesId >= 0 && mesId < cutOffIndex) {
             $(this).addClass("fmt-hidden-message");
-            if (chat[mesId]) chat[mesId].is_skipped = true; // Скрываем от AI (экономим токены)
         } else {
             $(this).removeClass("fmt-hidden-message");
-            if (chat[mesId]) chat[mesId].is_skipped = false; // Возвращаем AI
         }
     });
 
-    // 2. Внедряем суммари в контекст (теперь это будет видно в Prompt Manager)
     if (facts.length > 0 && cutOffIndex > 0) {
         const factsSummary = "### System Note: Key facts from previous conversation:\n" + facts.join("\n");
         context.extension_prompt = factsSummary; 
@@ -39,7 +37,6 @@ function applyVisualHiding() {
         context.extension_prompt = "";
     }
 
-    // 2. Управляем блоком саммари в начале чата
     $("#fmt_summary_in_chat").remove();
     if (facts.length > 0 && cutOffIndex > 0) {
         const summaryHtml = `
@@ -48,33 +45,25 @@ function applyVisualHiding() {
                     <span><i class="fa-solid fa-brain"></i> SUMMARY TRACKER</span>
                     <span>${facts.length} facts</span>
                 </div>
-                
                 <div style="display: flex; gap: 20px; justify-content: center; margin-top: 10px;">
                     <button id="fmt_btn_toggle_text" style="background: transparent; border: 1px dashed #4a9eff; color: #4a9eff; padding: 8px 16px; border-radius: 5px; cursor: pointer; white-space: nowrap;">Саммари</button>
                     <button id="fmt_btn_show_history" style="background: transparent; border: 1px dashed #4a9eff; color: #4a9eff; padding: 8px 16px; border-radius: 5px; cursor: pointer; white-space: nowrap;">Сообщения</button>
                 </div>
                 </div>
-
                 <div id="fmt_summary_text_container" class="fmt-summary-content" style="display: none; margin-top: 15px;">
                     ${facts.join(" ")}
                 </div>
             </div>`;
         $("#chat").prepend(summaryHtml);
         
-        // Обработчик для первой кнопки: показываем/скрываем текст фактов
         $("#fmt_btn_toggle_text").on("click", function() {
             $("#fmt_summary_text_container").toggle(); 
         });
 
-        // Обработчик для второй кнопки: разворачиваем историю чата
-        // Обработчик для второй кнопки: разворачиваем/сворачиваем историю чата
         $("#fmt_btn_show_history").on("click", function() {
-            // Проверяем, есть ли сейчас скрытые сообщения
             if ($(".fmt-hidden-message").length > 0) {
-                // Если есть — показываем их, заменяя оригинальный класс на временный
                 $(".fmt-hidden-message").removeClass("fmt-hidden-message").addClass("fmt-temp-show");
             } else {
-                // Если скрытых сообщений нет (мы их уже развернули) — возвращаем скрывающий класс обратно
                 $(".fmt-temp-show").removeClass("fmt-temp-show").addClass("fmt-hidden-message");
             }
         });
@@ -153,7 +142,7 @@ async function runAutoScan() {
 
     try {
         for (const msg of messagesToScan) {
-            const promptText = `TASK: Ensure contextual continuity by summarizing and extracting key details and events from the story’s plot, as well as information about {{user}}, {{char}}, and other characters.
+            const promptText = `TASK: Ensure contextual continuity by summarizing and extracting key details and events from the story's plot, as well as information about {{user}}, {{char}}, and other characters.
  So write a concise paragraph. Always write your fact summary in the language used in {{user}}'s messages. If none, reply: "No new facts".\n\nMESSAGE: ${msg.speaker}: ${msg.text}`;
             const response = await window.SillyTavern.getContext().generateRaw({ prompt: promptText });
             const newFact = response ? response.trim() : "No new facts";
@@ -223,10 +212,26 @@ jQuery(async () => {
         });
        
         loadSettings();
-        eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (async () => {
+
+        eventSource.on(event_types.GENERATE_BEFORE_COMBINE_PROMPTS, () => {
+            const context = getContext();
+            const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
+            const cutOffIndex = context.chat.length - skipCount;
+            if (cutOffIndex > 0) {
+                hiddenMessagesBuffer = context.chat.splice(0, cutOffIndex);
+            }
+        });
+
+        eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, async () => {
+            if (hiddenMessagesBuffer.length > 0) {
+                const context = getContext();
+                context.chat.unshift(...hiddenMessagesBuffer);
+                hiddenMessagesBuffer = [];
+            }
             await handleChatEvent();
             applyVisualHiding();
-        }));
+        });
+
         eventSource.on(event_types.MESSAGE_RECEIVED, updateMaxSkip);
         eventSource.on(event_types.CHAT_COMPLETED, applyVisualHiding);
         
