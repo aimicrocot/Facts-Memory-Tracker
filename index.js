@@ -13,20 +13,31 @@ const defaultSettings = {
 // --- ФУНКЦИИ ВИЗУАЛИЗАЦИИ И СКРЫТИЯ ---
 
 function applyVisualHiding() {
-    const chat = getContext().chat;
+    const context = getContext();
+    const chat = context.chat;
     const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
     const facts = extension_settings[extensionName].facts;
     const cutOffIndex = chat.length - skipCount;
 
-    // 1. Скрываем старые сообщения в DOM
+    // 1. Скрываем сообщения: визуально в HTML и логически для AI
     $(".mes").each(function() {
         const mesId = parseInt($(this).attr("mesid"));
         if (mesId >= 0 && mesId < cutOffIndex) {
             $(this).addClass("fmt-hidden-message");
+            if (chat[mesId]) chat[mesId].is_skipped = true; // Скрываем от AI (экономим токены)
         } else {
             $(this).removeClass("fmt-hidden-message");
+            if (chat[mesId]) chat[mesId].is_skipped = false; // Возвращаем AI
         }
     });
+
+    // 2. Внедряем суммари в контекст (теперь это будет видно в Prompt Manager)
+    if (facts.length > 0 && cutOffIndex > 0) {
+        const factsSummary = "### System Note: Key facts from previous conversation:\n" + facts.join("\n");
+        context.extension_prompt = factsSummary; 
+    } else {
+        context.extension_prompt = "";
+    }
 
     // 2. Управляем блоком саммари в начале чата
     $("#fmt_summary_in_chat").remove();
@@ -184,33 +195,6 @@ function loadSettings() {
     updateMaxSkip();
     renderFacts();
 }
-
-// Хук подмены контекста для ИИ (реальное сокращение токенов)
-eventSource.on(event_types.GENERATE_BEFORE_COMMANDS, async () => {
-    const context = getContext();
-    const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
-    const facts = extension_settings[extensionName].facts;
-    const cutOffIndex = context.chat.length - skipCount;
-
-    // Сначала сбрасываем пропуски, чтобы изменения слайдера применялись динамически
-    context.chat.forEach(msg => {
-        if (msg.hasOwnProperty('is_skipped')) msg.is_skipped = false;
-    });
-
-    if (facts.length > 0 && cutOffIndex > 0) {
-        // 1. Помечаем старые сообщения как "пропущенные" для сборщика промпта
-        for (let i = 0; i < cutOffIndex; i++) {
-            context.chat[i].is_skipped = true;
-        }
-        
-        // 2. Внедряем факты в системный промпт расширения
-        // Это добавит их в запрос, не создавая лишних сообщений в файле чата
-        const factsSummary = "### System Note: Key facts from previous conversation:\n" + facts.join("\n");
-        context.extension_prompt = factsSummary; 
-        
-        console.log(`[${extensionName}] Context optimized: ${cutOffIndex} messages skipped.`);
-    }
-});
 
 jQuery(async () => {
     try {
