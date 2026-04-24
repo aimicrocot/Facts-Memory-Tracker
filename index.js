@@ -187,7 +187,7 @@ async function runAutoScan() {
         for (const msg of messagesToScan) {
             const promptText = `TASK: Ensure contextual continuity by summarizing and extracting key details and events from the story's plot, as well as information about {{user}}, {{char}}, and other characters.
  So write a concise paragraph. Always write your fact summary in the language used in {{user}}'s messages. If none, reply: "No new facts".\n\nMESSAGE: ${msg.speaker}: ${msg.text}`;
-            const response = await window.SillyTavern.getContext().generateRaw({ prompt: promptText });
+            const response = await window.SillyTavern.getContext().generateQuietPrompt({ prompt: promptText });
             const newFact = response ? response.trim() : "No new facts";
 
             if (newFact.length > 5 && !newFact.toLowerCase().includes("no new facts")) {
