@@ -166,6 +166,10 @@ async function handleChatEvent() {
     const chat = getContext().chat;
     if (chat && chat.length > 0 && chat.length % 4 === 0) {
         await runAutoScan();
+        extension_settings[extensionName].isHidden = true;
+        saveSettingsDebounced();
+        $("#fmt_toggle_hide").val("Вернуть");
+        applyVisualHiding();
     }
 }
 
