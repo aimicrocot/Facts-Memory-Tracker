@@ -30,6 +30,10 @@ A minimalist extension that hides messages from the context and extracts their e
 
 Find the extension name in the list of extensions in SillyTavern.
 
+### Contacts
+
+My Telegram-channel: [@sillytavern1](https://t.me/sillytavern1)
+
 ### Inspired by
 
 An extension with similar functionality that I came across:
@@ -66,6 +70,10 @@ An extension with similar functionality that I came across:
 ### Использование
 
 Найдите название расширения в списке расширений в SillyTavern.
+
+### Контакты
+
+Мой Телеграм-канал: [@sillytavern1](https://t.me/sillytavern1)
 
 ### Вдохновлено
 
