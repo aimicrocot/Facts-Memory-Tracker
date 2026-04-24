@@ -91,7 +91,7 @@ function renderFacts() {
     const facts = getCurrentFacts();
 
     if (!facts || facts.length === 0) {
-        listContainer.html('<small style="opacity:0.5;">Пусто...</small>');
+        listContainer.html('<small style="opacity:0.5;">Empty...</small>');
         applyVisualHiding(); 
         return;
     }
@@ -123,7 +123,7 @@ function renderSummary() {
     const facts = getCurrentFacts();
 
     if (!facts || facts.length === 0) {
-        container.html('<small style="opacity:0.5;">Пусто...</small>');
+        container.html('<small style="opacity:0.5;">Empty...</small>');
         return;
     }
 
@@ -139,24 +139,24 @@ function renderSummary() {
     container.html(html);
 
     $("#fmt_summary_delete_btn").off("click").on("click", function() {
-        if (confirm("Удалить саммари?")) {
+        if (confirm("Delete summary?")) {
             setCurrentFacts([]);
             saveSettingsDebounced();
             renderFacts();
             renderSummary();
-            toastr.info("Саммари удалено");
+            toastr.info("Summary deleted");
         }
     });
 
     $("#fmt_summary_edit_btn").off("click").on("click", function() {
         const current = facts.join(" ");
-        const edited = prompt("Редактирование саммари:", current);
+        const edited = prompt("Edit summary:", current);
         if (edited !== null && edited.trim() !== "") {
             setCurrentFacts([edited.trim()]);
             saveSettingsDebounced();
             renderFacts();
             renderSummary();
-            toastr.success("Саммари обновлено");
+            toastr.success("Summary updated");
         }
     });
 }
