@@ -208,7 +208,7 @@ async function handleChatEvent() {
         await runAutoScan();
         extension_settings[extensionName].isHidden = true;
         saveSettingsDebounced();
-        $("#fmt_toggle_hide").val("Вернуть");
+        $("#fmt_toggle_hide").val("Return");
         applyVisualHiding();
     }
 }
@@ -236,7 +236,7 @@ function loadSettings() {
     updateMaxSkip();
     renderFacts();
     renderSummary();
-    $("#fmt_toggle_hide").val(extension_settings[extensionName].isHidden ? "Вернуть" : "Скрыть");
+    $("#fmt_toggle_hide").val(extension_settings[extensionName].isHidden ? "Return" : "Hide");
 }
 
 jQuery(async () => {
@@ -270,7 +270,7 @@ jQuery(async () => {
             const isHidden = !extension_settings[extensionName].isHidden;
             extension_settings[extensionName].isHidden = isHidden;
             saveSettingsDebounced();
-            $("#fmt_toggle_hide").val(isHidden ? "Вернуть" : "Скрыть");
+            $("#fmt_toggle_hide").val(isHidden ? "Return" : "Hide");
             applyVisualHiding();
         });
        
