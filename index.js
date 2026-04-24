@@ -7,7 +7,7 @@ const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const defaultSettings = {
     autoScan: false,
     skipCount: 2,
-    isHidden: true,
+    isHidden: false,
     facts: [] 
 };
 
@@ -156,9 +156,6 @@ async function runAutoScan() {
         }
         saveSettingsDebounced();
         toastr.success("Готово!", "Summary Tracker");
-        extension_settings[extensionName].isHidden = true;
-        $("#fmt_toggle_hide").val("Вернуть");
-        applyVisualHiding();
     } catch (error) {
         console.error(`[${extensionName}] Error:`, error);
     }
