@@ -162,6 +162,10 @@ function renderSummary() {
 }
 
 async function runAutoScan() {
+    if (!getCurrentChatId()) {
+        toastr.warning("Open the chat first");
+        return;
+    }
     const context = getContext();
     const chat = context.chat;
     const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
