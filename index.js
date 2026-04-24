@@ -192,7 +192,7 @@ function loadSettings() {
     $("#fmt_skip_count").val(extension_settings[extensionName].skipCount || 2);
     updateMaxSkip();
     renderFacts();
-    $("#fmt_toggle_hide").val(extension_settings[extensionName].isHidden ? "Скрыть" : "Вернуть");
+    $("#fmt_toggle_hide").val(extension_settings[extensionName].isHidden ? "Вернуть" : "Скрыть");
 }
 
 jQuery(async () => {
@@ -225,7 +225,7 @@ jQuery(async () => {
             const isHidden = !extension_settings[extensionName].isHidden;
             extension_settings[extensionName].isHidden = isHidden;
             saveSettingsDebounced();
-            $("#fmt_toggle_hide").val(isHidden ? "Скрыть" : "Вернуть");
+            $("#fmt_toggle_hide").val(isHidden ? "Вернуть" : "Скрыть");
             applyVisualHiding();
         });
        
