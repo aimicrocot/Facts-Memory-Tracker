@@ -186,7 +186,7 @@ function loadSettings() {
         Object.assign(extension_settings[extensionName], defaultSettings);
     }
     if (extension_settings[extensionName].isHidden === undefined) {
-        extension_settings[extensionName].isHidden = true;
+        extension_settings[extensionName].isHidden = false;
     }
     $("#fmt_auto_scan").prop("checked", extension_settings[extensionName].autoScan);
     $("#fmt_skip_count").val(extension_settings[extensionName].skipCount || 2);
