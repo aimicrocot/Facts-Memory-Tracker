@@ -56,39 +56,6 @@ function applyVisualHiding() {
         context.extension_prompt = "";
     }
 
-    $("#fmt_summary_in_chat").remove();
-    if (facts.length > 0 && cutOffIndex > 0) {
-        const summaryHtml = `
-            <div id="fmt_summary_in_chat" class="fmt-chat-summary-block" style="padding-bottom: 15px;">
-                <div class="fmt-summary-header">
-                    <span><i class="fa-solid fa-brain"></i> SUMMARY TRACKER</span>
-                    <span>${facts.length} facts</span>
-                </div>
-                <div style="display: flex; gap: 20px; justify-content: center; margin-top: 10px;">
-                    <button id="fmt_btn_toggle_text" style="background: transparent; border: 1px dashed #4a9eff; color: #4a9eff; padding: 8px 16px; border-radius: 5px; cursor: pointer; white-space: nowrap;">Саммари</button>
-                    <button id="fmt_btn_show_history" style="background: transparent; border: 1px dashed #4a9eff; color: #4a9eff; padding: 8px 16px; border-radius: 5px; cursor: pointer; white-space: nowrap;">Сообщения</button>
-                </div>
-                </div>
-                <div id="fmt_summary_text_container" class="fmt-summary-content" style="display: none; margin-top: 15px;">
-                    ${facts.join(" ")}
-                </div>
-            </div>`;
-        $("#chat").prepend(summaryHtml);
-        
-        $("#fmt_btn_toggle_text").on("click", function() {
-            $("#fmt_summary_text_container").toggle(); 
-        });
-
-        $("#fmt_btn_show_history").on("click", function() {
-            if ($(".fmt-hidden-message").length > 0) {
-                $(".fmt-hidden-message").removeClass("fmt-hidden-message").addClass("fmt-temp-show");
-            } else {
-                $(".fmt-temp-show").removeClass("fmt-temp-show").addClass("fmt-hidden-message");
-            }
-        });
-    }
-}
-
 // --- ФУНКЦИИ УПРАВЛЕНИЯ ФАКТАМИ ---
 
 function deleteFact(index) {
