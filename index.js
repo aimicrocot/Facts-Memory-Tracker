@@ -36,7 +36,7 @@ function applyVisualHiding() {
     const context = getContext();
     const chat = context.chat;
     const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
-    const facts = extension_settings[extensionName].facts;
+    const facts = getCurrentFacts();
     const cutOffIndex = chat.length - skipCount;
 
     const shouldHide = extension_settings[extensionName].isHidden;
@@ -92,7 +92,9 @@ function applyVisualHiding() {
 // --- ФУНКЦИИ УПРАВЛЕНИЯ ФАКТАМИ ---
 
 function deleteFact(index) {
-    extension_settings[extensionName].facts.splice(index, 1);
+    const facts = getCurrentFacts();
+    facts.splice(index, 1);
+    setCurrentFacts(facts);
     saveSettingsDebounced();
     renderFacts();
     toastr.info("Факт удален");
@@ -102,7 +104,9 @@ function editFact(index) {
     const currentFact = extension_settings[extensionName].facts[index];
     const newFact = prompt("Редактирование факта:", currentFact);
     if (newFact !== null && newFact.trim() !== "") {
-        extension_settings[extensionName].facts[index] = newFact.trim();
+        const facts = getCurrentFacts();
+        facts[index] = newFact.trim();
+        setCurrentFacts(facts);
         saveSettingsDebounced();
         renderFacts();
         toastr.success("Факт обновлен");
@@ -111,7 +115,7 @@ function editFact(index) {
 
 function renderFacts() {
     const listContainer = $("#fmt_facts_list");
-    const facts = extension_settings[extensionName].facts;
+    const facts = getCurrentFacts();
 
     if (!facts || facts.length === 0) {
         listContainer.html('<small style="opacity:0.5;">Список пуст...</small>');
