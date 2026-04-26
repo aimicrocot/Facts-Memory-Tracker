@@ -12,8 +12,6 @@ const defaultSettings = {
     lastScannedByChatId: {}
 };
 
-let hiddenMessagesBuffer = [];
-
 function getCurrentChatId() {
     const context = getContext();
     return context.chatId || null;
@@ -305,22 +303,7 @@ jQuery(async () => {
        
         loadSettings();
 
-        eventSource.on(event_types.GENERATE_BEFORE_COMBINE_PROMPTS, () => {
-            if (!extension_settings[extensionName].isHidden) return;
-            const context = getContext();
-            const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
-            const cutOffIndex = context.chat.length - skipCount;
-            if (cutOffIndex > 0) {
-                hiddenMessagesBuffer = context.chat.splice(0, cutOffIndex);
-            }
-        });
-
         eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, async () => {
-            if (hiddenMessagesBuffer.length > 0) {
-                const context = getContext();
-                context.chat.unshift(...hiddenMessagesBuffer);
-                hiddenMessagesBuffer = [];
-            }
             await handleChatEvent();
             applyVisualHiding();
         });
