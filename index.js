@@ -201,8 +201,7 @@ async function runAutoScan() {
     try {
         for (const msg of messagesToScan) {
             await new Promise(resolve => setTimeout(resolve, 1500));
-            const promptText = `TASK: Ensure contextual continuity by summarizing and extracting key details and events from the story's plot, as well as information about {{user}}, {{char}}, and other characters.
- So write a concise paragraph. Always write your fact summary in the language used in {{user}}'s messages.".\n\nMESSAGE: ${msg.speaker}: ${msg.text}`;
+            const promptText = `TASK: Ensure contextual continuity by summarizing and extracting key details and events from the story's plot, as well as information about {{user}}, {{char}}, and other characters. Even if the message is very short, always write a brief summary of what happened or was said. Never skip a message. Always write your summary in the language used in {{user}}'s messages.\n\nMESSAGE: ${msg.speaker}: ${msg.text}`;
             const response = await window.SillyTavern.getContext().generateRaw({
                 prompt: promptText,
                 quietToLoud: false,
