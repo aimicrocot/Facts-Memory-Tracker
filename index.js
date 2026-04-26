@@ -55,8 +55,9 @@ function applyVisualHiding() {
    const shouldHide = extension_settings[extensionName].isHidden;
     $(".mes").each(function() {
         const mesId = parseInt($(this).attr("mesid"));
-        if (context.chat[mesId] && context.chat[mesId].extra) context.chat[mesId].extra.skip = true;
+        if (shouldHide && mesId >= 0 && mesId < cutOffIndex) {
             $(this).attr("is_system", "true");
+            if (context.chat[mesId] && context.chat[mesId].extra) context.chat[mesId].extra.skip = true;
         } else {
             $(this).attr("is_system", "false");
             if (context.chat[mesId] && context.chat[mesId].extra) context.chat[mesId].extra.skip = false;
