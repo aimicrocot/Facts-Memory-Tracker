@@ -99,6 +99,8 @@ function renderFacts() {
     const listContainer = $("#fmt_facts_list");
     const facts = getCurrentFacts();
 
+    $("#fmt_facts_count").text(facts ? facts.length : 0);
+
     if (!facts || facts.length === 0) {
         listContainer.html('<small style="opacity:0.5;">Empty...</small>');
         applyVisualHiding(); 
