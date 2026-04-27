@@ -12,6 +12,8 @@ const defaultSettings = {
     lastScannedByChatId: {}
 };
 
+let hiddenMessagesBuffer = []; // хранит { index, message } для точного возврата
+
 function getCurrentChatId() {
     const context = getContext();
     return context.chatId || null;
@@ -302,7 +304,32 @@ jQuery(async () => {
        
         loadSettings();
 
+        eventSource.on(event_types.GENERATE_BEFORE_COMBINE_PROMPTS, () => {
+            if (hiddenMessagesBuffer.length > 0) return;
+            const context = getContext();
+            const chat = context.chat;
+            const toRemove = [];
+            for (let i = chat.length - 1; i >= 0; i--) {
+                if (chat[i].extra && chat[i].extra.fmt_skip === true) {
+                    toRemove.push(i);
+                }
+            }
+            hiddenMessagesBuffer = toRemove.map(i => ({ index: i, message: chat[i] }));
+            for (const i of toRemove) {
+                chat.splice(i, 1);
+            }
+        });
+
         eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, async () => {
+            if (hiddenMessagesBuffer.length > 0) {
+                const context = getContext();
+                const chat = context.chat;
+                for (let j = hiddenMessagesBuffer.length - 1; j >= 0; j--) {
+                    const { index, message } = hiddenMessagesBuffer[j];
+                    chat.splice(index, 0, message);
+                }
+                hiddenMessagesBuffer = [];
+            }
             await handleChatEvent();
             applyVisualHiding();
         });
