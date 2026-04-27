@@ -59,6 +59,12 @@ function applyVisualHiding() {
         chat[i].extra.fmt_skip = (shouldHide && i < cutOffIndex);
     }
 
+    // Расставляем пометки extra.fmt_skip
+    for (let i = 0; i < chat.length; i++) {
+        if (!chat[i].extra) chat[i].extra = {};
+        chat[i].extra.fmt_skip = (shouldHide && i < cutOffIndex);
+    }
+
     // Визуальное скрытие через CSS — не трогаем атрибут is_system (это тоже механизм призрака)
     $(".mes").each(function() {
         const mesId = parseInt($(this).attr("mesid"));
