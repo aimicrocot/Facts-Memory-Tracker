@@ -12,8 +12,6 @@ const defaultSettings = {
     lastScannedByChatId: {}
 };
 
-let hiddenMessagesBuffer = []; // хранит { index, message } для точного возврата
-
 function getCurrentChatId() {
     const context = getContext();
     return context.chatId || null;
@@ -51,33 +49,22 @@ function applyVisualHiding() {
     const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
     const facts = getCurrentFacts();
     const cutOffIndex = chat.length - skipCount;
-    const shouldHide = extension_settings[extensionName].isHidden;
 
-    // Расставляем нашу пометку extra.fmt_skip — не трогаем extra.skip (это призрак пользователя)
-    for (let i = 0; i < chat.length; i++) {
-        if (!chat[i].extra) chat[i].extra = {};
-        chat[i].extra.fmt_skip = (shouldHide && i < cutOffIndex);
-    }
-
-    // Расставляем пометки extra.fmt_skip
-    for (let i = 0; i < chat.length; i++) {
-        if (!chat[i].extra) chat[i].extra = {};
-        chat[i].extra.fmt_skip = (shouldHide && i < cutOffIndex);
-    }
-
-    // Визуальное скрытие через CSS — не трогаем атрибут is_system (это тоже механизм призрака)
+   const shouldHide = extension_settings[extensionName].isHidden;
     $(".mes").each(function() {
         const mesId = parseInt($(this).attr("mesid"));
         if (shouldHide && mesId >= 0 && mesId < cutOffIndex) {
-            $(this).css("display", "none");
+            $(this).attr("is_system", "true");
+            if (context.chat[mesId] && context.chat[mesId].extra) context.chat[mesId].extra.skip = true;
         } else {
-            $(this).css("display", "");
+            $(this).attr("is_system", "false");
+            if (context.chat[mesId] && context.chat[mesId].extra) context.chat[mesId].extra.skip = false;
         }
     });
 
     if (facts.length > 0 && cutOffIndex > 0) {
         const factsSummary = "### System Note: Key facts from previous conversation:\n" + facts.join("\n");
-        context.extension_prompt = factsSummary;
+        context.extension_prompt = factsSummary; 
     } else {
         context.extension_prompt = "";
     }
@@ -268,11 +255,10 @@ function loadSettings() {
     }
     $("#fmt_auto_scan").prop("checked", extension_settings[extensionName].autoScan);
     $("#fmt_skip_count").val(extension_settings[extensionName].skipCount || 2);
-    if (extension_settings[extensionName].isHidden === undefined) {
-        extension_settings[extensionName].isHidden = false;
-    }
     updateMaxSkip();
     renderFacts();
+    $("#fmt_toggle_hide").val(extension_settings[extensionName].isHidden ? "Show" : "Hide");
+}
 
 jQuery(async () => {
     try {
@@ -311,32 +297,7 @@ jQuery(async () => {
        
         loadSettings();
 
-        eventSource.on(event_types.GENERATE_BEFORE_COMBINE_PROMPTS, () => {
-            if (hiddenMessagesBuffer.length > 0) return; // уже вырезано, не трогаем
-            const context = getContext();
-            const chat = context.chat;
-            const toRemove = [];
-            for (let i = chat.length - 1; i >= 0; i--) {
-                if (chat[i].extra && chat[i].extra.fmt_skip === true) {
-                    toRemove.push(i);
-                }
-            }
-            hiddenMessagesBuffer = toRemove.map(i => ({ index: i, message: chat[i] }));
-            for (const i of toRemove) {
-                chat.splice(i, 1);
-            }
-        });
-
         eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, async () => {
-            if (hiddenMessagesBuffer.length > 0) {
-                const context = getContext();
-                const chat = context.chat;
-                for (let j = hiddenMessagesBuffer.length - 1; j >= 0; j--) {
-                    const { index, message } = hiddenMessagesBuffer[j];
-                    chat.splice(index, 0, message);
-                }
-                hiddenMessagesBuffer = [];
-            }
             await handleChatEvent();
             applyVisualHiding();
         });
