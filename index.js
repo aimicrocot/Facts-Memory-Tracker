@@ -77,7 +77,6 @@ function deleteFact(index) {
     setCurrentFacts(facts);
     saveSettingsDebounced();
     renderFacts();
-    renderSummary();
     toastr.info("Факт удален");
 }
 
@@ -90,7 +89,6 @@ function editFact(index) {
         setCurrentFacts(facts);
         saveSettingsDebounced();
         renderFacts();
-        renderSummary();
         toastr.success("Факт обновлен");
     }
 }
@@ -171,7 +169,6 @@ async function runAutoScan() {
                 facts.push(newFact);
                 setCurrentFacts(facts);
                 renderFacts();
-                renderSummary();
             }
         }
         setLastScanned(endIndex);
@@ -219,7 +216,6 @@ function loadSettings() {
     $("#fmt_skip_count").val(extension_settings[extensionName].skipCount || 2);
     updateMaxSkip();
     renderFacts();
-    renderSummary();
     $("#fmt_toggle_hide").val(extension_settings[extensionName].isHidden ? "Show" : "Hide");
 }
 
@@ -247,7 +243,6 @@ jQuery(async () => {
                 setLastScanned(0);
                 saveSettingsDebounced();
                 renderFacts();
-                renderSummary();
             }
         });
 
@@ -270,7 +265,6 @@ jQuery(async () => {
         eventSource.on(event_types.CHAT_COMPLETED, applyVisualHiding);
         eventSource.on(event_types.CHAT_CHANGED, () => {
             renderFacts();
-            renderSummary();
             applyVisualHiding();
         });
         
