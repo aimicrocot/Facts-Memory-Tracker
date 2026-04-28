@@ -307,7 +307,7 @@ jQuery(async () => {
        
         loadSettings();
 
-        eventSource.on(event_types.GENERATION_STARTED, () => {
+        eventSource.on("generation_started", () => {
             if (hiddenMessagesBuffer.length > 0) return; // уже вырезано, не трогаем
             const context = getContext();
             const chat = context.chat;
