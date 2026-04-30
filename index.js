@@ -74,9 +74,9 @@ function applyVisualHiding() {
     $(".mes").each(function() {
         const mesId = parseInt($(this).attr("mesid"));
         if (shouldHide && mesId >= 0 && mesId < cutOffIndex) {
-            $(this).css("display", "none");
+            $(this).addClass("fmt-hidden");
         } else {
-            $(this).css("display", "");
+            $(this).removeClass("fmt-hidden");
         }
     });
 
