@@ -267,7 +267,12 @@ function loadSettings() {
     }
     updateMaxSkip();
     renderFacts();
+    const facts = getCurrentFacts();
+    if (facts.length === 0) {
+        extension_settings[extensionName].isHidden = false;
+    }
     $("#fmt_toggle_hide").val(extension_settings[extensionName].isHidden ? "Show" : "Hide");
+    applyVisualHiding();
 }
 
 jQuery(async () => {
