@@ -15,6 +15,16 @@ const defaultSettings = {
 let hiddenMessagesBuffer = []; // хранит { index, message } для точного возврата
 let isScanning = false; // флаг активного скана через generateRaw
 
+function updateHideButton() {
+    const facts = getCurrentFacts();
+    const isHidden = extension_settings[extensionName].isHidden;
+    if (facts.length === 0) {
+        $("#fmt_toggle_hide").val("No facts").prop("disabled", true);
+    } else {
+        $("#fmt_toggle_hide").val(isHidden ? "Show" : "Hide").prop("disabled", false);
+    }
+}
+
 function getCurrentChatId() {
     const context = getContext();
     return context.chatId || null;
@@ -131,6 +141,7 @@ function renderFacts() {
     $(".fmt-edit-btn").off("click").on("click", function() { editFact($(this).data("index")); });
 
     applyVisualHiding();
+    updateHideButton();
 }
 
 // --- ЛОГИКА СКАНИРОВАНИЯ ---
@@ -271,8 +282,8 @@ function loadSettings() {
     if (facts.length === 0) {
         extension_settings[extensionName].isHidden = false;
     }
-    $("#fmt_toggle_hide").val(extension_settings[extensionName].isHidden ? "Show" : "Hide");
     applyVisualHiding();
+    updateHideButton();
 }
 
 jQuery(async () => {
@@ -303,11 +314,13 @@ jQuery(async () => {
         });
 
         $("#fmt_toggle_hide").on("click", () => {
+            const facts = getCurrentFacts();
+            if (facts.length === 0) return;
             const isHidden = !extension_settings[extensionName].isHidden;
             extension_settings[extensionName].isHidden = isHidden;
             saveSettingsDebounced();
-            $("#fmt_toggle_hide").val(isHidden ? "Show" : "Hide");
             applyVisualHiding();
+            updateHideButton();
         });
        
         loadSettings();
