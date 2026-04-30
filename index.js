@@ -13,6 +13,7 @@ const defaultSettings = {
 };
 
 let hiddenMessagesBuffer = []; // хранит { index, message } для точного возврата
+let isScanning = false; // флаг активного скана через generateRaw
 
 function getCurrentChatId() {
     const context = getContext();
@@ -139,6 +140,7 @@ async function runAutoScan() {
         toastr.warning("Open the chat first");
         return;
     }
+    isScanning = true;
     const context = getContext();
     const chat = context.chat;
     const skipCount = parseInt(extension_settings[extensionName].skipCount) || 2;
@@ -224,6 +226,8 @@ ${numbered}`;
     } catch (error) {
         console.error(`[${extensionName}] Error:`, error);
         toastr.error("Ошибка сканирования", "Summary Tracker");
+    } finally {
+        isScanning = false;
     }
 }
 
@@ -308,7 +312,8 @@ jQuery(async () => {
         loadSettings();
 
         eventSource.on("generation_started", () => {
-            if (hiddenMessagesBuffer.length > 0) return; // уже вырезано, не трогаем
+            if (isScanning) return;
+            if (hiddenMessagesBuffer.length > 0) return;
             const context = getContext();
             const chat = context.chat;
             const toRemove = [];
